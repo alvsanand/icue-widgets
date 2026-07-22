@@ -1,0 +1,33 @@
+{
+  "name": "icue-widgets",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate": "node tools/validate-manifest.js",
+    "screenshot": "node tools/screenshot.js",
+    "icon": "node tools/generate-icon.js",
+    "package": "bash tools/build-release.sh",
+    "test": "node tools/smoke-test.js",
+    "test:unit": "node tools/test-unit.js",
+    "probe:server": "node tools/probe-server.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.0",
+    "puppeteer": "^24.0.0"
+  },
+  "allowScripts": {
+    "puppeteer@24.43.1": true
+  }
+}

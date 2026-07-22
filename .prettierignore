@@ -1,0 +1,12 @@
+dist
+node_modules
+coverage
+package-lock.json
+
+# Widget HTML/CSS/JS is NOT formatted by Prettier. iCUE's import parser and
+# runtime are sensitive to exact HTML syntax: Prettier lowercases <!DOCTYPE html>
+# and rewrites void tags as self-closing (<meta ... />), a form iCUE's importer
+# fails to parse ("Missing title element"). Widget files must match the syntax of
+# known-good widgets (uppercase DOCTYPE, non-self-closed void tags). Widget code
+# is also excluded from ESLint for related reasons — see CLAUDE.md.
+widgets/**

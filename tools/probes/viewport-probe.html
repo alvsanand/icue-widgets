@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iCUE Viewport Probe</title>
+
+    <meta
+      name="x-icue-restrictions"
+      data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard_lcd"}]'
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        font-family: monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a2e;
+        color: #fff;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #dims {
+        font-size: 8vmin;
+        font-weight: bold;
+      }
+      #ratio {
+        font-size: 5vmin;
+        opacity: 0.7;
+        margin-top: 1vmin;
+      }
+      #dpr {
+        font-size: 4vmin;
+        opacity: 0.5;
+        margin-top: 1vmin;
+      }
+      #log {
+        position: absolute;
+        bottom: 1vmin;
+        left: 1vmin;
+        right: 1vmin;
+        font-size: 2.5vmin;
+        opacity: 0.7;
+        max-height: 40vh;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dims">--</div>
+    <div id="ratio">--</div>
+    <div id="dpr">--</div>
+    <div id="log"></div>
+
+    <script>
+      var log = [];
+      var logEl = document.getElementById('log');
+
+      function addLog(msg) {
+        var t = new Date();
+        var stamp = t.getMinutes() + ':' + (t.getSeconds() < 10 ? '0' : '') + t.getSeconds();
+        log.push(stamp + ' ' + msg);
+        if (log.length > 20) log.shift();
+        logEl.textContent = log.join('\n');
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function update() {
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        document.getElementById('dims').textContent = w + ' x ' + h;
+        document.getElementById('ratio').textContent = 'Aspect: ' + (w / h).toFixed(4) + ':1';
+        document.getElementById('dpr').textContent = 'DPR: ' + (window.devicePixelRatio || 1);
+      }
+
+      window.addEventListener('resize', function () {
+        addLog('RESIZE ' + window.innerWidth + 'x' + window.innerHeight);
+        update();
+      });
+
+      function onInit() {
+        addLog('onICUEInitialized');
+        update();
+      }
+      function onDataUpdated() {
+        addLog('onDataUpdated');
+        update();
+      }
+
+      icueEvents = {
+        onICUEInitialized: onInit,
+        onDataUpdated: onDataUpdated,
+      };
+
+      update();
+      if (typeof iCUE_initialized === 'undefined' || iCUE_initialized) onInit();
+    </script>
+  </body>
+</html>

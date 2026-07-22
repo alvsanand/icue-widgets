@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iCUE API Probe</title>
+
+    <meta name="x-icue-interactive" />
+    <meta name="x-icue-restrictions" data-restrictions='[{"device":"dashboard_lcd"}]' />
+
+    <!-- Declare data-source properties so iCUE injects them for enumeration. -->
+    <meta name="x-icue-property" content="mediaSession" data-type="media-session" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Consolas', monospace;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        padding: 1.5vh 2vw;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1 {
+        font-size: 2.5vh;
+        color: #00ffaa;
+        margin-bottom: 1vh;
+      }
+      .bar {
+        display: flex;
+        gap: 1vw;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 1.5vh;
+      }
+      button {
+        font-size: 1.8vh;
+        padding: 0.6vh 1.5vw;
+        border: none;
+        border-radius: 0.5vh;
+        cursor: pointer;
+        color: #0a0a0a;
+        background: #00ffaa;
+      }
+      #status {
+        flex-basis: 100%;
+        font-size: 1.6vh;
+        color: #aaa;
+      }
+      .section-title {
+        color: #88bbff;
+        font-size: 1.8vh;
+        margin: 1.2vh 0 0.4vh;
+        border-bottom: 1px solid rgba(136, 187, 255, 0.2);
+      }
+      .row {
+        font-size: 1.4vh;
+        display: flex;
+        gap: 1vw;
+        padding: 0.1vh 0;
+      }
+      .label {
+        color: #aaa;
+        min-width: 30vw;
+        flex-shrink: 0;
+      }
+      .value {
+        word-break: break-all;
+      }
+      .pass {
+        color: #00ff88;
+      }
+      .fail {
+        color: #ff6666;
+      }
+      .warn {
+        color: #ffaa44;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>iCUE API Probe</h1>
+    <div class="bar">
+      <button onclick="exportPost()">POST to localhost:9876</button>
+      <button onclick="exportClipboard()">Copy</button>
+      <button onclick="exportDownload()">Download .txt</button>
+      <div id="status">Probing…</div>
+    </div>
+    <div id="out"></div>
+
+    <script>
+      const out = document.getElementById('out');
+      const lines = [];
+
+      function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+      }
+      function section(title) {
+        lines.push('', '=== ' + title + ' ===');
+        const el = document.createElement('div');
+        el.className = 'section-title';
+        el.textContent = title;
+        out.appendChild(el);
+      }
+      function row(label, value, cls) {
+        lines.push('  ' + label.padEnd(36) + ' ' + value);
+        const el = document.createElement('div');
+        el.className = 'row';
+        el.innerHTML =
+          '<span class="label">' +
+          esc(label) +
+          '</span><span class="value ' +
+          (cls || '') +
+          '">' +
+          esc(String(value)) +
+          '</span>';
+        out.appendChild(el);
+      }
+
+      function enumerate(label, obj) {
+        const seen = new Set();
+        let o = obj;
+        while (o && o !== Object.prototype) {
+          Object.getOwnPropertyNames(o).forEach((p) => seen.add(p));
+          try {
+            o = Object.getPrototypeOf(o);
+          } catch (e) {
+            break;
+          }
+        }
+        Array.from(seen)
+          .sort()
+          .forEach((prop) => {
+            let val;
+            try {
+              val = obj[prop];
+            } catch (e) {
+              row(label + '.' + prop, '[throws]', 'warn');
+              return;
+            }
+            const type = typeof val;
+            if (type === 'function') row(label + '.' + prop, '[function]');
+            else if (type === 'object' && val !== null)
+              row(label + '.' + prop, '(object) keys: ' + Object.keys(val).join(', '));
+            else row(label + '.' + prop, '(' + type + ') ' + JSON.stringify(val));
+          });
+      }
+
+      function probe() {
+        lines.length = 0;
+        out.innerHTML = '';
+        lines.push('=== iCUE API Probe Report ===', 'Date: ' + new Date().toISOString());
+
+        section('Environment');
+        row('User Agent', navigator.userAgent);
+        row('Viewport', window.innerWidth + 'x' + window.innerHeight);
+        row('Screen', screen.width + 'x' + screen.height);
+        row('devicePixelRatio', window.devicePixelRatio || 1);
+
+        section('iCUE API (window.iCUE)');
+        if (typeof iCUE === 'undefined') {
+          row('iCUE object', 'NOT FOUND', 'fail');
+        } else {
+          row('iCUE object', 'EXISTS', 'pass');
+          enumerate('iCUE', iCUE);
+        }
+
+        section('Qt WebChannel');
+        row(
+          'window.qt',
+          typeof qt !== 'undefined' ? 'EXISTS' : 'MISSING',
+          typeof qt !== 'undefined' ? 'pass' : 'warn',
+        );
+
+        section('Injected globals');
+        [
+          'tick',
+          'updateTick',
+          'applyData',
+          'requestUpdate',
+          'tr',
+          'iCUE_initialized',
+          'mediaSession',
+          'uniqueId',
+        ].forEach((name) => {
+          const t = typeof window[name];
+          row(
+            name,
+            t === 'undefined' ? 'undefined' : '(' + t + ')',
+            t === 'undefined' ? 'warn' : 'pass',
+          );
+        });
+
+        section('Media session property');
+        if (typeof mediaSession !== 'undefined' && mediaSession) {
+          row('mediaSession', JSON.stringify(mediaSession), 'pass');
+        } else {
+          row('mediaSession', 'null / no active session', 'warn');
+        }
+
+        document.getElementById('status').textContent = 'Done. ' + lines.length + ' lines.';
+      }
+
+      function report() {
+        return lines.join('\n');
+      }
+      function exportPost() {
+        fetch('http://localhost:9876/probe-results', { method: 'POST', body: report() })
+          .then(() => (document.getElementById('status').textContent = 'POSTed OK'))
+          .catch((e) => (document.getElementById('status').textContent = 'POST failed: ' + e));
+      }
+      function exportClipboard() {
+        navigator.clipboard.writeText(report());
+        document.getElementById('status').textContent = 'Copied to clipboard';
+      }
+      function exportDownload() {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([report()], { type: 'text/plain' }));
+        a.download = 'api-probe-results.txt';
+        a.click();
+      }
+
+      function onInit() {
+        probe();
+      }
+      function onDataUpdated() {
+        probe();
+      }
+
+      icueEvents = {
+        onICUEInitialized: onInit,
+        onDataUpdated: onDataUpdated,
+      };
+
+      if (typeof iCUE_initialized === 'undefined' || iCUE_initialized) onInit();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "en": {
+    "translation": {
+      "PumpDeck": "PumpDeck",
+      "Common": "Common",
+      "Screens 1 AND 2": "Screens 1 AND 2",
+      "Screens 3 AND 4": "Screens 3 AND 4",
+      "Screens 5 AND 6": "Screens 5 AND 6",
+      "Accent theme": "Accent theme",
+      "Device label": "Device label",
+      "Auto-cycle screens": "Auto-cycle screens",
+      "None": "None",
+      "Flames (2 sensors)": "Flames (2 sensors)",
+      "Bars (2 sensors)": "Bars (2 sensors)",
+      "Sparklines (2 sensors)": "Sparklines (2 sensors)",
+      "Fan (1 sensor)": "Fan (1 sensor)",
+      "Gauge (1 sensor)": "Gauge (1 sensor)",
+      "FPS": "FPS",
+      "Clock": "Clock",
+      "Text ticker": "Text ticker",
+      "Amber": "Amber",
+      "Ember": "Ember",
+      "Toxic Green": "Toxic Green",
+      "Cyber Cyan": "Cyber Cyan",
+      "Magenta": "Magenta",
+      "Ice White": "Ice White"
+    }
+  }
+}

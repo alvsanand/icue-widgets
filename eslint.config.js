@@ -18,5 +18,15 @@ export default [
       globals: { ...globals.node, ...globals.browser },
     },
   },
+  {
+    // pumpdeck/ is the standalone Web Component (real browser ESM, build-step
+    // free but still linted — unlike the iCUE widget HTML under widgets/).
+    files: ['pumpdeck/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.browser },
+    },
+  },
   eslintConfigPrettier,
 ];

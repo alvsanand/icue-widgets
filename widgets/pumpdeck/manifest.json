@@ -1,0 +1,16 @@
+{
+  "author": "alvsanand",
+  "id": "com.alvsanand.pumpdeck",
+  "name": "PumpDeck",
+  "description": "Round pump-cap LCD that cycles configurable sensor screens: flames, bars, sparklines, fan, gauge, FPS, clock and a text ticker.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [{ "platform": "windows" }],
+  "supported_devices": [{ "type": "pump_lcd" }],
+  "min_app_version": "5.45",
+  "required_plugins": [
+    "widgetbuilder.sensorsdataprovider:Sensors:1.0",
+    "widgetbuilder.fpsdataprovider:Fps:1.0"
+  ]
+}

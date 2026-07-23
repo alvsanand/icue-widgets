@@ -3,6 +3,11 @@ node_modules
 coverage
 package-lock.json
 
+# designs/ holds exported/bundled mockups (e.g. PumpDeck.html — a 400KB iCUE
+# bundler snapshot). Like widget HTML, these are generated artifacts whose exact
+# bytes matter; Prettier must not rewrite them.
+designs
+
 # Widget HTML/CSS/JS is NOT formatted by Prettier. iCUE's import parser and
 # runtime are sensitive to exact HTML syntax: Prettier lowercases <!DOCTYPE html>
 # and rewrites void tags as self-closing (<meta ... />), a form iCUE's importer

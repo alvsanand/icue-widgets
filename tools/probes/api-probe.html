@@ -10,6 +10,13 @@
 
     <!-- Declare data-source properties so iCUE injects them for enumeration. -->
     <meta name="x-icue-property" content="mediaSession" data-type="media-session" />
+    <!-- Pulls in window.plugins.Sensorsdataprovider so the Sensors section works. -->
+    <meta
+      name="x-icue-property"
+      content="probeSensor"
+      data-label="tr('Sensor')"
+      data-type="sensors-combobox"
+    />
 
     <style>
       * {
@@ -180,6 +187,63 @@
           typeof qt !== 'undefined' ? 'pass' : 'warn',
         );
 
+        section('Sensors plugin (window.plugins.Sensorsdataprovider)');
+        row(
+          'window.plugins',
+          typeof plugins === 'undefined'
+            ? 'undefined'
+            : Object.keys(plugins).join(', ') || '(empty)',
+          typeof plugins === 'undefined' || !Object.keys(plugins || {}).length ? 'fail' : 'pass',
+        );
+        const Sp =
+          (typeof plugins !== 'undefined' && plugins && plugins.Sensorsdataprovider) || null;
+        if (!Sp) {
+          row('Sensorsdataprovider', 'NOT FOUND', 'fail');
+        } else {
+          row('Sensorsdataprovider', 'EXISTS', 'pass');
+          enumerate('Sensors', Sp);
+          // Which sensor categories actually resolve to a default block on THIS
+          // machine? Confirms what the sensor-combobox pickers will offer.
+          if (typeof Sp.getDefaultSensorIdBlock === 'function') {
+            // NB: fps is NOT a sensor category — it's the separate Fps plugin below.
+            [
+              'temperature',
+              'load',
+              'pump',
+              'fan',
+              'voltage',
+              'current',
+              'power',
+              'battery',
+              'efficiency',
+              'frequency',
+              'level',
+              'usage',
+            ].forEach((cat) => {
+              try {
+                const b = Sp.getDefaultSensorIdBlock(cat);
+                const has = b !== undefined && b !== null && b !== '';
+                row(
+                  'default block: ' + cat,
+                  has ? JSON.stringify(b) : 'none',
+                  has ? 'pass' : 'warn',
+                );
+              } catch (e) {
+                row('default block: ' + cat, '[throws] ' + e.message, 'warn');
+              }
+            });
+          }
+        }
+
+        section('FPS plugin (window.plugins.Fpsdataprovider)');
+        const Fp = (typeof plugins !== 'undefined' && plugins && plugins.Fpsdataprovider) || null;
+        if (!Fp) {
+          row('Fpsdataprovider', 'NOT FOUND', 'fail');
+        } else {
+          row('Fpsdataprovider', 'EXISTS', 'pass');
+          enumerate('Fps', Fp);
+        }
+
         section('Injected globals');
         [
           'tick',
@@ -190,6 +254,9 @@
           'iCUE_initialized',
           'mediaSession',
           'uniqueId',
+          'plugins',
+          'pluginSensorsdataprovider_initialized',
+          'pluginFpsdataprovider_initialized',
         ].forEach((name) => {
           const t = typeof window[name];
           row(
@@ -240,7 +307,16 @@
         onDataUpdated: onDataUpdated,
       };
 
+      // The Sensors plugin initializes asynchronously; re-probe when it lands so
+      // the Sensors section reflects the live provider instead of "NOT FOUND".
+      pluginSensorsdataproviderEvents = { onInitialized: probe };
+
       if (typeof iCUE_initialized === 'undefined' || iCUE_initialized) onInit();
+      if (
+        typeof pluginSensorsdataprovider_initialized !== 'undefined' &&
+        pluginSensorsdataprovider_initialized
+      )
+        probe();
     </script>
   </body>
 </html>

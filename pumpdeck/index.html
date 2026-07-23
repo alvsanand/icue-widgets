@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PumpDeck — configurator demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #050506;
+      }
+    </style>
+  </head>
+  <body>
+    <pump-deck-configurator id="cfg"></pump-deck-configurator>
+
+    <script type="module">
+      import './src/pump-deck-configurator.js';
+
+      const cfg = document.getElementById('cfg');
+
+      // Gently wander the demo sensor feed so every panel animates on its own,
+      // even without the user touching the sliders. Stands in for iCUE's real feed.
+      const targets = {
+        cpuTemp: 61,
+        gpuTemp: 54,
+        cpuLoad: 42,
+        gpuLoad: 73,
+        rpm: 1450,
+        netDown: 118,
+        netUp: 12,
+      };
+      const ranges = {
+        cpuTemp: [40, 88],
+        gpuTemp: [38, 84],
+        cpuLoad: [8, 98],
+        gpuLoad: [12, 99],
+        rpm: [900, 2400],
+        netDown: [10, 700],
+        netUp: [2, 120],
+      };
+      function wander() {
+        const next = {};
+        for (const k in targets) {
+          const [lo, hi] = ranges[k];
+          // random walk toward a slowly drifting target
+          if (Math.random() < 0.06) targets[k] = lo + Math.random() * (hi - lo);
+          const cur = cfg.sensors[k];
+          const step = (targets[k] - cur) * 0.15 + (Math.random() - 0.5) * (hi - lo) * 0.04;
+          next[k] = Math.max(lo, Math.min(hi, cur + step));
+        }
+        cfg.sensors = next;
+      }
+      setInterval(wander, 700);
+    </script>
+  </body>
+</html>
